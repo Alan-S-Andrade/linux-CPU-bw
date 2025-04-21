@@ -5915,8 +5915,14 @@ static bool period_agnostic_trace(struct cfs_bandwidth *cfs_b,
 
 		/* Wrap around history */
 		se->pa_hist_idx %= cfs_b->period_agnostic_history;
-		se->pa_yield_hist[se->pa_hist_idx] = yield_time;
-		se->pa_runtime_hist[se->pa_hist_idx] = runtime;
+		if (se->pa_yield_hist)
+			se->pa_yield_hist[se->pa_hist_idx] = yield_time;
+		else
+			se->pa_yield_hist = kmalloc(cfs_b->period_agnostic_history * sizeof(u64), GFP_KERNEL);
+		if (se->pa_runtime_hist)
+			se->pa_runtime_hist[se->pa_hist_idx] = runtime;
+		else
+			se->pa_runtime_hist = kmalloc(cfs_b->period_agnostic_history * sizeof(u64), GFP_KERNEL);
 		se->pa_hist_idx++;
 
 		trace_kscaler_agnostic_ind_record(se, runtime, yield_time);
